@@ -6,11 +6,14 @@ project(GameEngine VERSION 0.1.0 LANGUAGES C CXX)
 
 find_package(SDL2 REQUIRED CONFIG)
 find_package(GLEW REQUIRED)
+find_package(glm REQUIRED CONFIG)
 find_package(opengl_system REQUIRED CONFIG)
 
 add_executable(${PROJECT_NAME} src/main.cpp)
 
-target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW)
+# FIXME: glm sample uses the PRIVATE keyword?
+# https://github.com/conan-io/conan-center-index/blob/master/recipes/glm/all/test_package/CMakeLists.txt#L7
+target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW glm::glm)
 
 # Link SDL
 # https://github.com/conan-io/conan-center-index/blob/master/recipes/sdl/all/test_package/CMakeLists.txt#L8

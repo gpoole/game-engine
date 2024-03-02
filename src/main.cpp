@@ -5,6 +5,7 @@
 #include <gl/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -26,28 +27,114 @@ void print_gl_info()
     return;
 }
 
-void init_gl()
+glm::vec3 camera_position = glm::vec3(0, 0, 0);
+glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
+
+void render_camera()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    gluPerspective(45, (float)WinWidth / (float)WinHeight, 1, 1000);
+    glRotatef(camera_rotation.x, 1, 0, 0);
+    glRotatef(camera_rotation.y, 0, 1, 0);
+    glRotatef(camera_rotation.z, 0, 0, 1);
 
-    glViewport(0, 0, WinWidth, WinHeight);
-    glClearColor(0.f, 0.f, 0.f, 1.f);
+    glTranslatef(camera_position.x, camera_position.y, camera_position.z);
+}
+
+float cube_rotation = 0;
+
+void render_cube()
+{
+    glColor3f(255, 255, 0); // Yellow
+
+    glPushMatrix();
+
+    cube_rotation += 0.1;
+
+    glTranslatef(0, 0, -5);
+    glRotatef(cube_rotation, 0, 1, 0);
+
+    glBegin(GL_QUADS);
+
+    // Front face
+    glVertex3f(-1, -1, 1);
+    glVertex3f(1, -1, 1);
+    glVertex3f(1, 1, 1);
+    glVertex3f(-1, 1, 1);
+
+    // Right face
+    glVertex3f(1, -1, 1);
+    glVertex3f(1, -1, -1);
+    glVertex3f(1, 1, -1);
+    glVertex3f(1, 1, 1);
+
+    // Back face
+    glVertex3f(1, -1, -1);
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, 1, -1);
+    glVertex3f(1, 1, -1);
+
+    // Right face
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, -1, 1);
+    glVertex3f(-1, 1, 1);
+    glVertex3f(-1, 1, -1);
+
+    // Bottom face
+    glVertex3f(1, -1, -1);
+    glVertex3f(-1, -1, -1);
+    glVertex3f(-1, -1, 1);
+    glVertex3f(1, -1, 1);
+
+    // Top face
+    glVertex3f(1, 1, -1);
+    glVertex3f(-1, 1, -1);
+    glVertex3f(-1, 1, 1);
+    glVertex3f(1, 1, 1);
+
+    glEnd();
+
+    glPopMatrix();
 }
 
 void render()
 {
+    glViewport(0, 0, WinWidth, WinHeight);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    glBegin(GL_QUADS);
-    glVertex2f(-0.5f, -0.5f);
-    glVertex2f(0.5f, -0.5f);
-    glVertex2f(0.5f, 0.5f);
-    glVertex2f(-0.5f, 0.5f);
-    glEnd();
+    render_camera();
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    render_cube();
+}
+
+void update()
+{
+    Uint8 const* keys = SDL_GetKeyboardState(NULL);
+    if (keys[SDL_SCANCODE_RIGHT]) {
+        camera_rotation.y += 1;
+    }
+
+    if (keys[SDL_SCANCODE_LEFT]) {
+        camera_rotation.y -= 1;
+    }
+
+    float move_distance = 0;
+    if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
+        move_distance = 0.1;
+    } else if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
+        move_distance = -0.1;
+    }
+
+    if (move_distance != 0) {
+        camera_position.x -= glm::sin(glm::radians(camera_rotation.y)) * move_distance;
+        camera_position.z += glm::cos(glm::radians(camera_rotation.y)) * move_distance;
+    }
 }
 
 int main(int ArgCount, char** Args)
@@ -89,6 +176,8 @@ int main(int ArgCount, char** Args)
                 Running = 0;
             }
         }
+
+        update();
 
         render();
 
