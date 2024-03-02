@@ -15,10 +15,10 @@ typedef int32_t b32;
 
 void print_gl_info()
 {
-    const char *gl_vendor = (const char *)glGetString(GL_VENDOR);
-    const char *gl_renderer = (const char *)glGetString(GL_RENDERER);
-    const char *gl_version = (const char *)glGetString(GL_VERSION);
-    const char *gl_extensions = (const char *)glGetString(GL_EXTENSIONS);
+    char const* gl_vendor = (char const*)glGetString(GL_VENDOR);
+    char const* gl_renderer = (char const*)glGetString(GL_RENDERER);
+    char const* gl_version = (char const*)glGetString(GL_VERSION);
+    char const* gl_extensions = (char const*)glGetString(GL_EXTENSIONS);
     std::cout << "GL_VENDOR: " << (gl_vendor ? gl_vendor : "(null)") << std::endl;
     std::cout << "GL_RENDERER: " << (gl_renderer ? gl_renderer : "(null)") << std::endl;
     std::cout << "GL_VERSION: " << (gl_version ? gl_version : "(null)") << std::endl;
@@ -26,46 +26,42 @@ void print_gl_info()
     return;
 }
 
-int main(int ArgCount, char **Args)
+int main(int ArgCount, char** Args)
 {
     u32 WindowFlags = SDL_WINDOW_OPENGL;
-    SDL_Window *Window = SDL_CreateWindow("OpenGL Test", 0, 0, WinWidth, WinHeight, WindowFlags);
+    SDL_Window* Window = SDL_CreateWindow("OpenGL Test", 0, 0, WinWidth, WinHeight, WindowFlags);
     assert(Window);
     SDL_GLContext Context = SDL_GL_CreateContext(Window);
+
+    SDL_Init(SDL_INIT_VIDEO);
+
+    // VSync
+    SDL_GL_SetSwapInterval(1);
 
     print_gl_info();
 
     b32 Running = 1;
     b32 FullScreen = 0;
-    while (Running)
-    {
+    while (Running) {
         SDL_Event Event;
-        while (SDL_PollEvent(&Event))
-        {
-            if (Event.type == SDL_KEYDOWN)
-            {
-                switch (Event.key.keysym.sym)
-                {
+        while (SDL_PollEvent(&Event)) {
+            if (Event.type == SDL_KEYDOWN) {
+                switch (Event.key.keysym.sym) {
                 case SDLK_ESCAPE:
                     Running = 0;
                     break;
                 case 'f':
                     FullScreen = !FullScreen;
-                    if (FullScreen)
-                    {
+                    if (FullScreen) {
                         SDL_SetWindowFullscreen(Window, WindowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP);
-                    }
-                    else
-                    {
+                    } else {
                         SDL_SetWindowFullscreen(Window, WindowFlags);
                     }
                     break;
                 default:
                     break;
                 }
-            }
-            else if (Event.type == SDL_QUIT)
-            {
+            } else if (Event.type == SDL_QUIT) {
                 Running = 0;
             }
         }
