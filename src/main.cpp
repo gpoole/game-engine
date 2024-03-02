@@ -44,6 +44,7 @@ void render_camera()
 }
 
 float cube_rotation = 0;
+GLuint crate_texture;
 
 void render_cube()
 {
@@ -56,42 +57,68 @@ void render_cube()
     glTranslatef(0, 0, -5);
     glRotatef(cube_rotation, 0, 1, 0);
 
+    glBindTexture(GL_TEXTURE_2D, crate_texture);
+
     glBegin(GL_QUADS);
 
     // Front face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1, -1, 1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(1, -1, 1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(1, 1, 1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-1, 1, 1);
 
     // Right face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(1, -1, 1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(1, -1, -1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(1, 1, -1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(1, 1, 1);
 
     // Back face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(1, -1, -1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(-1, -1, -1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(-1, 1, -1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(1, 1, -1);
 
     // Right face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(-1, -1, -1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(-1, -1, 1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(-1, 1, 1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(-1, 1, -1);
 
     // Bottom face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(1, -1, -1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(-1, -1, -1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(-1, -1, 1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(1, -1, 1);
 
     // Top face
+    glTexCoord2f(0.0f, 0.0f);
     glVertex3f(1, 1, -1);
+    glTexCoord2f(1.0f, 0.0f);
     glVertex3f(-1, 1, -1);
+    glTexCoord2f(1.0f, 1.0f);
     glVertex3f(-1, 1, 1);
+    glTexCoord2f(0.0f, 1.0f);
     glVertex3f(1, 1, 1);
 
     glEnd();
@@ -103,12 +130,18 @@ void render()
 {
     glViewport(0, 0, WinWidth, WinHeight);
     glClearColor(0.f, 0.f, 0.f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     render_camera();
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+
+    // Needed or there's no depth
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    // Not sure what this does
+    // glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     render_cube();
 }
@@ -137,6 +170,23 @@ void update()
     }
 }
 
+bool load_assets()
+{
+    SDL_Surface* crate_image = SDL_LoadBMP("assets/textures/crate.bmp");
+    if (crate_image == NULL) {
+        std::cout << "Error: " << SDL_GetError() << std::endl;
+        return false;
+    }
+    glEnable(GL_TEXTURE_2D);
+    glGenTextures(1, &crate_texture);
+    glBindTexture(GL_TEXTURE_2D, crate_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, crate_image->w, crate_image->h, 0, GL_BGR, GL_UNSIGNED_BYTE, crate_image->pixels);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    SDL_FreeSurface(crate_image);
+    return true;
+}
+
 int main(int ArgCount, char** Args)
 {
     u32 WindowFlags = SDL_WINDOW_OPENGL;
@@ -151,8 +201,13 @@ int main(int ArgCount, char** Args)
 
     print_gl_info();
 
-    b32 Running = 1;
-    b32 FullScreen = 0;
+    if (!load_assets()) {
+        std::cout << "Error loading assets" << std::endl;
+        return 1;
+    }
+
+    bool Running = 1;
+    bool FullScreen = 0;
     while (Running) {
         SDL_Event Event;
         while (SDL_PollEvent(&Event)) {
