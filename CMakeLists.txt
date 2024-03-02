@@ -4,21 +4,22 @@ project(GameEngine VERSION 0.1.0 LANGUAGES C CXX)
 # include(CTest)
 # enable_testing()
 
-find_package(opengl_system REQUIRED CONFIG)
-
 find_package(SDL2 REQUIRED CONFIG)
 find_package(GLEW REQUIRED CONFIG)
 
-set(SOURCES main.cpp)
-
+# OpenGL support
 # https://github.com/conan-io/conan-center-index/blob/56a3277676b5f42ddcbcbc12f6ab97a31c30d321/recipes/opengl/all/test_package/CMakeLists.txt#L8
-# if(WIN32)
-#     list(APPEND SOURCES win.cpp)
-# endif()
+find_package(opengl_system REQUIRED CONFIG)
+
+set(SOURCES src/main.cpp)
+
+if(WIN32)
+    list(APPEND SOURCES win.cpp)
+endif()
 
 if(APPLE)
-    list(APPEND SOURCES osx.mm)
-    set_source_files_properties(osx.mm PROPERTIES COMPILE_FLAGS "-x objective-c++")
+    list(APPEND SOURCES src/platform/osx.mm)
+    set_source_files_properties(src/platform/osx.mm PROPERTIES COMPILE_FLAGS "-x objective-c++")
 
     list(APPEND PLATFORM_LIBS "objc")
 
@@ -34,11 +35,14 @@ if(APPLE)
     endif()
 endif()
 
-# find_package(OpenGL)
+# End of OpenGL support
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW)
+
+# Link SDL
+# https://github.com/conan-io/conan-center-index/blob/master/recipes/sdl/all/test_package/CMakeLists.txt#L8
 if(TARGET SDL2::SDL2-static)
     target_link_libraries(${PROJECT_NAME} SDL2::SDL2-static)
 else()
