@@ -1,16 +1,25 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.15)
 project(GameEngine VERSION 0.1.0 LANGUAGES C CXX)
 
-include(CTest)
-enable_testing()
+# include(CTest)
+# enable_testing()
 
-find_package(SDL2 REQUIRED)
-include_directories(GameEngine ${SDL2_INCLUDE_DIRS})
+# find_package(OpenGL REQUIRED COMPONENTS OpenGL)
 
-add_executable(GameEngine main.cpp)
+find_package(SDL2 REQUIRED CONFIG)
+find_package(GLEW REQUIRED CONFIG)
 
-target_link_libraries(GameEngine ${SDL2_LIBRARIES})
+find_package(OpenGL)
 
-set(CPACK_PROJECT_NAME ${PROJECT_NAME})
-set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
-include(CPack)
+add_executable(${PROJECT_NAME} main.cpp)
+
+target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW)
+if(TARGET SDL2::SDL2-static)
+    target_link_libraries(${PROJECT_NAME} SDL2::SDL2-static)
+else()
+    target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
+endif()
+
+# set(CPACK_PROJECT_NAME ${PROJECT_NAME})
+# set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+# include(CPack)
