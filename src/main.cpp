@@ -26,6 +26,30 @@ void print_gl_info()
     return;
 }
 
+void init_gl()
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+
+    glViewport(0, 0, WinWidth, WinHeight);
+    glClearColor(0.f, 0.f, 0.f, 1.f);
+}
+
+void render()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glBegin(GL_QUADS);
+    glVertex2f(-0.5f, -0.5f);
+    glVertex2f(0.5f, -0.5f);
+    glVertex2f(0.5f, 0.5f);
+    glVertex2f(-0.5f, 0.5f);
+    glEnd();
+}
+
 int main(int ArgCount, char** Args)
 {
     u32 WindowFlags = SDL_WINDOW_OPENGL;
@@ -66,9 +90,7 @@ int main(int ArgCount, char** Args)
             }
         }
 
-        glViewport(0, 0, WinWidth, WinHeight);
-        glClearColor(1.f, 0.f, 1.f, 0.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        render();
 
         SDL_GL_SwapWindow(Window);
     }
