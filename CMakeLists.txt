@@ -40,9 +40,9 @@ include(CPack)
 # Copy assets to build directory
 # https://github.com/Gaetz/SDL-OpenGL/blob/master/CMakeLists.txt#L36
 add_custom_command(
-        TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_LIST_DIR}/assets
-        $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
-        COMMENT "---- Copy Assets"
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_LIST_DIR}/assets
+    $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
+    COMMENT "---- Copy Assets"
 )
