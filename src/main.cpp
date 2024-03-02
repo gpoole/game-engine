@@ -2,9 +2,9 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
+#include <gl/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
-#include "platform/gl.h"
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -28,19 +28,12 @@ void print_gl_info()
 
 int main(int ArgCount, char **Args)
 {
-    // init_gl();
-    if (!init_context())
-    {
-        std::cout << "Failed to initialize OpenGL context" << std::endl;
-        return -1;
-    }
-
-    print_gl_info();
-
     u32 WindowFlags = SDL_WINDOW_OPENGL;
     SDL_Window *Window = SDL_CreateWindow("OpenGL Test", 0, 0, WinWidth, WinHeight, WindowFlags);
     assert(Window);
     SDL_GLContext Context = SDL_GL_CreateContext(Window);
+
+    print_gl_info();
 
     b32 Running = 1;
     b32 FullScreen = 0;

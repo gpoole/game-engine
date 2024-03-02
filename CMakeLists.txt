@@ -5,39 +5,10 @@ project(GameEngine VERSION 0.1.0 LANGUAGES C CXX)
 # enable_testing()
 
 find_package(SDL2 REQUIRED CONFIG)
-find_package(GLEW REQUIRED CONFIG)
-
-# OpenGL support
-# https://github.com/conan-io/conan-center-index/blob/56a3277676b5f42ddcbcbc12f6ab97a31c30d321/recipes/opengl/all/test_package/CMakeLists.txt#L8
+find_package(GLEW REQUIRED)
 find_package(opengl_system REQUIRED CONFIG)
 
-set(SOURCES src/main.cpp)
-
-if(WIN32)
-    list(APPEND SOURCES win.cpp)
-endif()
-
-if(APPLE)
-    list(APPEND SOURCES src/platform/osx.mm)
-    set_source_files_properties(src/platform/osx.mm PROPERTIES COMPILE_FLAGS "-x objective-c++")
-
-    list(APPEND PLATFORM_LIBS "objc")
-
-    find_library(APPKIT_LIBRARY AppKit)
-    find_library(FOUNDATION_LIBRARY Foundation)
-
-    if(APPKIT_LIBRARY)
-        list(APPEND PLATFORM_LIBS ${APPKIT_LIBRARY})
-    endif()
-
-    if(FOUNDATION_LIBRARY)
-        list(APPEND PLATFORM_LIBS ${FOUNDATION_LIBRARY})
-    endif()
-endif()
-
-# End of OpenGL support
-
-add_executable(${PROJECT_NAME} ${SOURCES})
+add_executable(${PROJECT_NAME} src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW)
 
