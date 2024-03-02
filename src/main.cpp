@@ -5,6 +5,7 @@
 #include <gl/glew.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 
 typedef int32_t i32;
@@ -172,7 +173,7 @@ void update()
 
 bool load_assets()
 {
-    SDL_Surface* crate_image = SDL_LoadBMP("assets/textures/crate.bmp");
+    SDL_Surface* crate_image = IMG_Load("assets/textures/crate.bmp");
     if (crate_image == NULL) {
         std::cout << "Error: " << SDL_GetError() << std::endl;
         return false;

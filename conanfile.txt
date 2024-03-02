@@ -1,6 +1,7 @@
 [requires]
-sdl/2.28.5
+sdl/2.28.3
 glew/2.2.0
+sdl_image/2.6.3
 glm/cci.20230113
 opengl/system
 
