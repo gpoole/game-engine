@@ -10,7 +10,12 @@ find_package(GLEW REQUIRED)
 find_package(glm REQUIRED CONFIG)
 find_package(opengl_system REQUIRED CONFIG)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+set(SOURCES
+    src/main.cpp
+    src/Md2Model.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 # FIXME: glm sample uses the PRIVATE keyword?
 # https://github.com/conan-io/conan-center-index/blob/master/recipes/glm/all/test_package/CMakeLists.txt#L7

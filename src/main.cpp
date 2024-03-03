@@ -7,6 +7,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
+#include "Md2Model.hpp"
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -185,6 +186,10 @@ bool load_assets()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     SDL_FreeSurface(crate_image);
+
+    auto model = GameEngine::Md2Model::load("assets/models/hueteotl/tris.md2");
+    model.dump_info();
+
     return true;
 }
 
