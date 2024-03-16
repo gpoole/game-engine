@@ -31,6 +31,7 @@ void print_gl_info()
 
 glm::vec3 camera_position = glm::vec3(0, 0, 0);
 glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
+GameEngine::Md2::Model const* test_model;
 
 void render_camera()
 {
@@ -145,7 +146,8 @@ void render()
     // Not sure what this does
     // glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-    render_cube();
+    // render_cube();
+    test_model->render();
 }
 
 void update()
@@ -187,8 +189,7 @@ bool load_assets()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     SDL_FreeSurface(crate_image);
 
-    auto model = GameEngine::Md2Model::load("assets/models/hueteotl/tris.md2");
-    model.dump_info();
+    test_model = new GameEngine::Md2::Model("assets/models/hueteotl/tris.md2");
 
     return true;
 }
