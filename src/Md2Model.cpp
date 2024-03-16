@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Md2Model.hpp"
 #include <gl/glew.h>
+#include <SDL2/SDL.h>
 #include <fstream>
 #include <vector>
 #include <glm/glm.hpp>
@@ -101,9 +102,22 @@ void Model::dump_info() const
     std::cout << "Hello";
 }
 
+uint32_t last_tick = -1;
+float animation_progress = 0;
+
 void Model::render() const
 {
-    auto const& frame = m_frames[0];
+    if (last_tick == -1) {
+        last_tick = SDL_GetTicks();
+    }
+    auto seconds_elapsed = (SDL_GetTicks() - last_tick) / 1000.0f;
+    animation_progress += 15.0f * seconds_elapsed;
+    if (animation_progress >= m_frames.size()) {
+        animation_progress = 0;
+    }
+    last_tick = SDL_GetTicks();
+
+    auto const& frame = m_frames[floor(animation_progress)];
     for (auto const& face : frame.faces()) {
         glBegin(GL_TRIANGLES);
         for (int vertex_index = 0; vertex_index < 3; vertex_index++) {

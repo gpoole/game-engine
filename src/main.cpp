@@ -163,9 +163,9 @@ void update()
 
     float move_distance = 0;
     if (keys[SDL_SCANCODE_UP] || keys[SDL_SCANCODE_W]) {
-        move_distance = 0.1;
+        move_distance = 0.5;
     } else if (keys[SDL_SCANCODE_DOWN] || keys[SDL_SCANCODE_S]) {
-        move_distance = -0.1;
+        move_distance = -0.5;
     }
 
     if (move_distance != 0) {
