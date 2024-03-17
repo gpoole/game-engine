@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <tuple>
+#include <map>
 #include <glm/glm.hpp>
 
 namespace GameEngine {
@@ -53,19 +54,13 @@ public:
 
 class Frame {
 private:
-    std::string m_name;
     std::vector<Face> m_faces;
 
 public:
-    Frame(std::string name, std::vector<Face> faces)
-        : m_name(name)
-        , m_faces(faces) {};
+    Frame(std::vector<Face> faces)
+        : m_faces(faces) {};
     ~Frame() = default;
 
-    std::string const name() const
-    {
-        return m_name;
-    }
     std::vector<Face> const& faces() const
     {
         return m_faces;
@@ -74,7 +69,7 @@ public:
 
 class Model {
 private:
-    std::vector<Frame> m_frames;
+    std::map<std::string, std::vector<Frame>> m_frames;
 
 public:
     Model(std::string const& path);

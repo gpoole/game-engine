@@ -48,32 +48,33 @@ Model::Model(std::string const& path)
     std::ifstream file(path, std::ios::binary);
 
     FileHeader header;
-    if (!file.read(reinterpret_cast<char*>(&header), sizeof(header))) {
+    if (!file.read((char*)&header, sizeof(header))) {
         throw std::runtime_error("Failed to load: " + path);
     }
 
     glm::vec2 texture_coordinates[header.texture_coordinate_count];
     file.seekg(header.texture_coordinates_offset);
-    file.read(reinterpret_cast<char*>(&texture_coordinates), sizeof(texture_coordinates));
+    file.read((char*)&texture_coordinates, sizeof(texture_coordinates));
 
     FileTriangle triangles[header.triangle_count];
     file.seekg(header.triangles_offset);
-    if (!file.read(reinterpret_cast<char*>(&triangles), sizeof(triangles))) {
+    if (!file.read((char*)&triangles, sizeof(triangles))) {
         throw std::runtime_error("Failed to load: " + path);
     }
 
     glm::vec2 texture_dimensions(header.texture_width, header.texture_height);
     file.seekg(header.frames_offset);
+    std::string* current_frame_name = NULL;
     for (int frame_index = 0; frame_index < header.frame_count; frame_index++) {
         glm::vec3 frame_scale;
         glm::vec3 frame_translate;
-        char frame_name[16];
+        std::string frame_name(16, '\0');
         FileVertex frame_vertices[header.vertex_count];
 
-        file.read(reinterpret_cast<char*>(&frame_scale), sizeof(frame_scale));
-        file.read(reinterpret_cast<char*>(&frame_translate), sizeof(frame_translate));
-        file.read(reinterpret_cast<char*>(&frame_name), sizeof(frame_name));
-        file.read(reinterpret_cast<char*>(&frame_vertices), sizeof(frame_vertices));
+        file.read((char*)&frame_scale, sizeof(frame_scale));
+        file.read((char*)&frame_translate, sizeof(frame_translate));
+        file.read(&frame_name[0], sizeof(char) * 16);
+        file.read((char*)&frame_vertices, sizeof(frame_vertices));
 
         std::vector<Face> frame_faces;
         for (int triangle_index = 0; triangle_index < header.triangle_count; triangle_index++) {
@@ -93,7 +94,11 @@ Model::Model(std::string const& path)
             frame_faces.push_back(Face(face_vertices));
         }
 
-        m_frames.push_back(Frame(std::string(frame_name), frame_faces));
+        // assuming name format is animation000
+        int animation_name_end_pos = frame_name.find_first_of('\0') - 3;
+        std::string animation_name = frame_name.substr(0, animation_name_end_pos);
+
+        m_frames[animation_name].push_back(Frame(frame_faces));
     }
 }
 
@@ -104,31 +109,31 @@ void Model::dump_info() const
 
 uint32_t last_tick = -1;
 float animation_progress = 0;
+std::string animation_name = "stand";
 
 void Model::render() const
 {
+    auto animation_frames = m_frames.at(animation_name);
+
     if (last_tick == -1) {
         last_tick = SDL_GetTicks();
     }
     auto seconds_elapsed = (SDL_GetTicks() - last_tick) / 1000.0f;
     animation_progress += 15.0f * seconds_elapsed;
-    if (animation_progress >= m_frames.size()) {
+    if (animation_progress >= animation_frames.size()) {
         animation_progress = 0;
     }
     last_tick = SDL_GetTicks();
 
-    auto const& frame = m_frames[floor(animation_progress)];
+    auto const& frame = animation_frames[floor(animation_progress)];
     for (auto const& face : frame.faces()) {
         glBegin(GL_TRIANGLES);
         for (int vertex_index = 0; vertex_index < 3; vertex_index++) {
             auto vertex = face.vertex(vertex_index);
-            auto texture_coordinates = vertex.texture_coordinates();
-            auto position = vertex.position();
-            auto normal = vertex.normal();
-            glTexCoord2f(texture_coordinates.s, texture_coordinates.t);
-            glVertex3f(position.x, position.z, position.y);
+            glTexCoord2f(vertex.texture_coordinates().s, vertex.texture_coordinates().t);
+            glVertex3f(vertex.position().x, vertex.position().z, vertex.position().y);
             // FIXME: no normals yet
-            // glNormal3f(normal.x, normal.y, normal.z);
+            // glNormal3f(vertex.normal().x, vertex.normal().y, vertex.normal().z);
         }
         glEnd();
     }
