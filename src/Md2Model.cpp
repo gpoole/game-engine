@@ -121,15 +121,12 @@ void Model::render() const
         last_tick = SDL_GetTicks();
     }
     auto seconds_elapsed = (SDL_GetTicks() - last_tick) / 1000.0f;
-    animation_progress += 15.0f * seconds_elapsed;
-    if (animation_progress >= animation_frames.size()) {
-        animation_progress = 0;
-    }
+    animation_progress = std::fmod(animation_progress + (15.0f * seconds_elapsed), animation_frames.size());
     last_tick = SDL_GetTicks();
 
     int current_frame_index = floor(animation_progress);
-    auto const& current_frame = animation_frames.at(current_frame_index);
-    auto const& next_frame = animation_frames.at((current_frame_index + 1) % animation_frames.size());
+    auto const& current_frame = animation_frames[current_frame_index];
+    auto const& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
     for (int i = 0; i < current_frame.faces().size(); i++) {
         auto const& current_face = current_frame.faces()[i];
         auto const& next_face = next_frame.faces()[i];
@@ -141,13 +138,13 @@ void Model::render() const
 
             // FIXME: the texture coordinates don't change between frames, I've just superimposed them
             // on to the frames for "easy" access. Really indicating that this is a bit of an awkward structure and we should go
-            // back to a looking them up from a central list by vertex index instead of putting them on each
+            // back to a looking them up from a central list by triangle / vertex index instead of putting them on each
             // frame of animation.
             glTexCoord2f(current_vertex.texture_coordinates().s, current_vertex.texture_coordinates().t);
             auto interpolated_position = glm::mix(
                 current_vertex.position(),
                 next_vertex.position(),
-                std::fmod(animation_progress, current_frame_index));
+                std::fmod(animation_progress, 1));
 
             glVertex3f(interpolated_position.x, interpolated_position.z, interpolated_position.y);
             // FIXME: no normals yet, also need to interpolate normals
