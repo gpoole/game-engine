@@ -107,6 +107,8 @@ void Model::dump_info() const
     std::cout << "Hello";
 }
 
+// FIXME: move this info to the model and also think about consoldiating time tracking,
+// maybe we want to pass a deltaTime to render?
 uint32_t last_tick = -1;
 float animation_progress = 0;
 std::string animation_name = "stand";
@@ -125,14 +127,30 @@ void Model::render() const
     }
     last_tick = SDL_GetTicks();
 
-    auto const& frame = animation_frames[floor(animation_progress)];
-    for (auto const& face : frame.faces()) {
+    int current_frame_index = floor(animation_progress);
+    auto const& current_frame = animation_frames.at(current_frame_index);
+    auto const& next_frame = animation_frames.at((current_frame_index + 1) % animation_frames.size());
+    for (int i = 0; i < current_frame.faces().size(); i++) {
+        auto const& current_face = current_frame.faces()[i];
+        auto const& next_face = next_frame.faces()[i];
+
         glBegin(GL_TRIANGLES);
         for (int vertex_index = 0; vertex_index < 3; vertex_index++) {
-            auto vertex = face.vertex(vertex_index);
-            glTexCoord2f(vertex.texture_coordinates().s, vertex.texture_coordinates().t);
-            glVertex3f(vertex.position().x, vertex.position().z, vertex.position().y);
-            // FIXME: no normals yet
+            auto current_vertex = current_face.vertex(vertex_index);
+            auto next_vertex = next_face.vertex(vertex_index);
+
+            // FIXME: the texture coordinates don't change between frames, I've just superimposed them
+            // on to the frames for "easy" access. Really indicating that this is a bit of an awkward structure and we should go
+            // back to a looking them up from a central list by vertex index instead of putting them on each
+            // frame of animation.
+            glTexCoord2f(current_vertex.texture_coordinates().s, current_vertex.texture_coordinates().t);
+            auto interpolated_position = glm::mix(
+                current_vertex.position(),
+                next_vertex.position(),
+                std::fmod(animation_progress, current_frame_index));
+
+            glVertex3f(interpolated_position.x, interpolated_position.z, interpolated_position.y);
+            // FIXME: no normals yet, also need to interpolate normals
             // glNormal3f(vertex.normal().x, vertex.normal().y, vertex.normal().z);
         }
         glEnd();
