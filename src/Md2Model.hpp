@@ -11,15 +11,13 @@ namespace Md2 {
 class Vertex {
 private:
     glm::vec3 m_position;
-    glm::vec2 m_texture_coordinates;
     glm::vec3 m_normal;
 
 public:
     Vertex() {};
-    Vertex(glm::vec3 position, glm::vec3 normal, glm::vec2 texture_coordinates)
+    Vertex(glm::vec3 position, glm::vec3 normal)
         : m_position(position)
         , m_normal(normal)
-        , m_texture_coordinates(texture_coordinates)
     {
     }
     ~Vertex() = default;
@@ -27,41 +25,47 @@ public:
     {
         return m_position;
     }
-    glm::vec2 const& texture_coordinates() const
-    {
-        return m_texture_coordinates;
-    }
     glm::vec3 const& normal() const
     {
         return m_normal;
     }
 };
 
-class Face {
+template<typename T>
+class Triangle {
 private:
-    std::array<Vertex, 3> m_vertices;
+    std::array<T, 3> m_points;
 
 public:
-    Face(std::array<Vertex, 3> vertices)
-        : m_vertices(vertices) {};
-    ~Face() = default;
+    Triangle() {};
+    Triangle(std::array<T, 3> points)
+        : m_points(points) {};
+    ~Triangle() = default;
 
-    Vertex const& vertex(int index) const
+    T const& point(int index) const
     {
-        return m_vertices[index];
+        if (index < 0 || index >= 3) {
+            throw std::invalid_argument("invalid point index");
+        }
+        return m_points[index];
+    }
+
+    void set_point(int index, T point)
+    {
+        m_points[index] = point;
     }
 };
 
 class Frame {
 private:
-    std::vector<Face> m_faces;
+    std::vector<Triangle<Vertex>> m_faces;
 
 public:
-    Frame(std::vector<Face> faces)
+    Frame(std::vector<Triangle<Vertex>> faces)
         : m_faces(faces) {};
     ~Frame() = default;
 
-    std::vector<Face> const& faces() const
+    std::vector<Triangle<Vertex>> const& faces() const
     {
         return m_faces;
     }
@@ -70,6 +74,7 @@ public:
 class Model {
 private:
     std::map<std::string, std::vector<Frame>> m_frames;
+    std::vector<Triangle<glm::vec2>> m_texture_coordinates;
 
 public:
     Model(std::string const& path);

@@ -63,6 +63,15 @@ Model::Model(std::string const& path)
     }
 
     glm::vec2 texture_dimensions(header.texture_width, header.texture_height);
+    m_texture_coordinates.resize(header.triangle_count);
+    for (int triangle_index = 0; triangle_index < header.triangle_count; triangle_index++) {
+        for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
+            // Note dimensions are normalised here to fit with GL's 0-1 mapping
+            auto const vertex_coordinates = texture_coordinates[triangles[triangle_index].texture_coordinates[triangle_vertex]] / texture_dimensions;
+            m_texture_coordinates[triangle_index].set_point(triangle_vertex, vertex_coordinates);
+        }
+    }
+
     file.seekg(header.frames_offset);
     std::string* current_frame_name = NULL;
     for (int frame_index = 0; frame_index < header.frame_count; frame_index++) {
@@ -76,25 +85,22 @@ Model::Model(std::string const& path)
         file.read(&frame_name[0], sizeof(char) * 16);
         file.read((char*)&frame_vertices, sizeof(frame_vertices));
 
-        std::vector<Face> frame_faces;
+        std::vector<Triangle<Vertex>> frame_faces(header.triangle_count);
         for (int triangle_index = 0; triangle_index < header.triangle_count; triangle_index++) {
-            std::array<Vertex, 3> face_vertices;
+            auto face_vertices = frame_faces[triangle_index];
             for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
                 auto const frame_vertex_index = triangles[triangle_index].vertex[triangle_vertex];
                 auto const compressed_position = frame_vertices[frame_vertex_index].compressed_position;
-                auto const vertex_texture_coordinates = texture_coordinates[triangles[triangle_index].texture_coordinates[triangle_vertex]] / texture_dimensions;
                 auto const vertex_position = glm::vec3(compressed_position[0], compressed_position[1], compressed_position[2]) * frame_scale + frame_translate;
-                face_vertices[triangle_vertex] = Vertex(
-                    vertex_position,
-                    // FIXME: look up normal
-                    glm::vec3(),
-                    vertex_texture_coordinates);
+                // FIXME: look up normal
+                face_vertices.set_point(triangle_vertex, Vertex(vertex_position, glm::vec3()));
             }
 
-            frame_faces.push_back(Face(face_vertices));
+            frame_faces.push_back(face_vertices);
         }
 
         // assuming name format is animation000
+        // FIXME: handle bad name?
         int animation_name_end_pos = frame_name.find_first_of('\0') - 3;
         std::string animation_name = frame_name.substr(0, animation_name_end_pos);
 
@@ -127,20 +133,22 @@ void Model::render() const
     int current_frame_index = floor(animation_progress);
     auto const& current_frame = animation_frames[current_frame_index];
     auto const& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
-    for (int i = 0; i < current_frame.faces().size(); i++) {
-        auto const& current_face = current_frame.faces()[i];
-        auto const& next_face = next_frame.faces()[i];
+    for (int triangle_index = 0; triangle_index < current_frame.faces().size(); triangle_index++) {
+        auto const& current_face = current_frame.faces()[triangle_index];
+        auto const& next_face = next_frame.faces()[triangle_index];
+        auto const& face_texture_coordinates = m_texture_coordinates[triangle_index];
 
         glBegin(GL_TRIANGLES);
         for (int vertex_index = 0; vertex_index < 3; vertex_index++) {
-            auto current_vertex = current_face.vertex(vertex_index);
-            auto next_vertex = next_face.vertex(vertex_index);
+            auto current_vertex = current_face.point(vertex_index);
+            auto next_vertex = next_face.point(vertex_index);
+            auto vertex_texture_coordinates = face_texture_coordinates.point(vertex_index);
 
             // FIXME: the texture coordinates don't change between frames, I've just superimposed them
             // on to the frames for "easy" access. Really indicating that this is a bit of an awkward structure and we should go
             // back to a looking them up from a central list by triangle / vertex index instead of putting them on each
             // frame of animation.
-            glTexCoord2f(current_vertex.texture_coordinates().s, current_vertex.texture_coordinates().t);
+            glTexCoord2f(vertex_texture_coordinates.s, vertex_texture_coordinates.t);
             auto interpolated_position = glm::mix(
                 current_vertex.position(),
                 next_vertex.position(),
