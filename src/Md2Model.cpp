@@ -1,6 +1,7 @@
 #include <iostream>
+#include <filesystem>
 #include "Md2Model.hpp"
-#include <gl/glew.h>
+#include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL.h>
 #include <fstream>
 #include <vector>
@@ -15,7 +16,7 @@ struct FileHeader {
     int texture_width;
     int texture_height;
 
-    int frame_size; /* size in bytes of a frame */
+    int frame_size;
 
     int skin_count;
     int vertex_count;
@@ -42,15 +43,32 @@ struct FileTriangle {
     unsigned short texture_coordinates[3];
 };
 
-namespace GameEngine::Md2 {
-Model::Model(std::string const& path)
+struct FileSkin {
+    char name[64];
+};
+
+namespace GameEngine {
+
+Md2Model::Md2Model(std::string const& path_str)
 {
-    std::ifstream file(path, std::ios::binary);
+    // There is a convention for the way md2 model file sets are arranged
+    // http://wiki.polycount.com/wiki/Quake_2
+    std::filesystem::path path(path_str);
+
+    std::filesystem::path tris_path = path / "tris.md2";
+
+    m_name = path.filename();
+
+    std::filesystem::path texture_path = path / (m_name + ".pcx");
+
+    std::ifstream file(tris_path, std::ios::binary);
 
     FileHeader header;
     if (!file.read((char*)&header, sizeof(header))) {
-        throw std::runtime_error("Failed to load: " + path);
+        throw std::runtime_error("Failed to load: " + path_str);
     }
+
+    // TODO: add any kind of integrity checking at all
 
     glm::vec2 texture_coordinates[header.texture_coordinate_count];
     file.seekg(header.texture_coordinates_offset);
@@ -59,8 +77,19 @@ Model::Model(std::string const& path)
     FileTriangle triangles[header.triangle_count];
     file.seekg(header.triangles_offset);
     if (!file.read((char*)&triangles, sizeof(triangles))) {
-        throw std::runtime_error("Failed to load: " + path);
+        throw std::runtime_error("Failed to load: " + path_str);
     }
+
+    // FIXME: test model didn't have skins, not supporting this for now
+    // FileSkin skins[header.skin_count];
+    // file.seekg(header.skins_offset);
+    // if (!file.read((char*)&skins, sizeof(skins))) {
+    //     throw std::runtime_error("Failed to load: " + path);
+    // }
+
+    // FIXME: just loading the default skin but obviously would be nice to allow loading any available
+    // skins as requested by the user
+    m_texture = std::make_unique<Texture>(texture_path);
 
     glm::vec2 texture_dimensions(header.texture_width, header.texture_height);
     m_texture_coordinates.resize(header.triangle_count);
@@ -85,7 +114,7 @@ Model::Model(std::string const& path)
         file.read(&frame_name[0], sizeof(char) * 16);
         file.read((char*)&frame_vertices, sizeof(frame_vertices));
 
-        std::vector<Triangle<Vertex>> frame_faces(header.triangle_count);
+        std::vector<Md2Triangle<Md2Vertex>> frame_faces(header.triangle_count);
         for (int triangle_index = 0; triangle_index < header.triangle_count; triangle_index++) {
             auto face_vertices = frame_faces[triangle_index];
             for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
@@ -93,7 +122,7 @@ Model::Model(std::string const& path)
                 auto const compressed_position = frame_vertices[frame_vertex_index].compressed_position;
                 auto const vertex_position = glm::vec3(compressed_position[0], compressed_position[1], compressed_position[2]) * frame_scale + frame_translate;
                 // FIXME: look up normal
-                face_vertices.set_point(triangle_vertex, Vertex(vertex_position, glm::vec3()));
+                face_vertices.set_point(triangle_vertex, Md2Vertex(vertex_position, glm::vec3()));
             }
 
             frame_faces.push_back(face_vertices);
@@ -104,11 +133,11 @@ Model::Model(std::string const& path)
         int animation_name_end_pos = frame_name.find_first_of('\0') - 3;
         std::string animation_name = frame_name.substr(0, animation_name_end_pos);
 
-        m_frames[animation_name].push_back(Frame(frame_faces));
+        m_frames[animation_name].push_back(Md2Frame(frame_faces));
     }
 }
 
-void Model::dump_info() const
+void Md2Model::dump_info() const
 {
     std::cout << "Hello";
 }
@@ -119,7 +148,7 @@ uint32_t last_tick = -1;
 float animation_progress = 0;
 std::string animation_name = "stand";
 
-void Model::render() const
+void Md2Model::render() const
 {
     auto animation_frames = m_frames.at(animation_name);
 
@@ -129,6 +158,9 @@ void Model::render() const
     auto seconds_elapsed = (SDL_GetTicks() - last_tick) / 1000.0f;
     animation_progress = std::fmod(animation_progress + (15.0f * seconds_elapsed), animation_frames.size());
     last_tick = SDL_GetTicks();
+
+    // FIXME: doesn't work yet...
+    // m_texture->bind();
 
     int current_frame_index = floor(animation_progress);
     auto const& current_frame = animation_frames[current_frame_index];
@@ -161,5 +193,4 @@ void Model::render() const
         glEnd();
     }
 }
-
 }

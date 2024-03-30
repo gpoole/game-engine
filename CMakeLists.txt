@@ -13,6 +13,7 @@ find_package(opengl_system REQUIRED CONFIG)
 set(SOURCES
     src/main.cpp
     src/Md2Model.cpp
+    src/Texture.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

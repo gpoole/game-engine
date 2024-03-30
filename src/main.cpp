@@ -31,7 +31,7 @@ void print_gl_info()
 
 glm::vec3 camera_position = glm::vec3(0, 0, 0);
 glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
-GameEngine::Md2::Model const* test_model;
+GameEngine::Md2Model const* test_model;
 
 void render_camera()
 {
@@ -47,7 +47,7 @@ void render_camera()
 }
 
 float cube_rotation = 0;
-GLuint crate_texture;
+GameEngine::Texture const* crate_texture;
 
 void render_cube()
 {
@@ -60,7 +60,7 @@ void render_cube()
     glTranslatef(0, 0, -5);
     glRotatef(cube_rotation, 0, 1, 0);
 
-    glBindTexture(GL_TEXTURE_2D, crate_texture);
+    crate_texture->bind();
 
     glBegin(GL_QUADS);
 
@@ -176,20 +176,8 @@ void update()
 
 bool load_assets()
 {
-    SDL_Surface* crate_image = IMG_Load("assets/textures/crate.bmp");
-    if (crate_image == NULL) {
-        std::cout << "Error: " << SDL_GetError() << std::endl;
-        return false;
-    }
-    glEnable(GL_TEXTURE_2D);
-    glGenTextures(1, &crate_texture);
-    glBindTexture(GL_TEXTURE_2D, crate_texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, crate_image->w, crate_image->h, 0, GL_BGR, GL_UNSIGNED_BYTE, crate_image->pixels);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    SDL_FreeSurface(crate_image);
-
-    test_model = new GameEngine::Md2::Model("assets/models/hueteotl/tris.md2");
+    test_model = new GameEngine::Md2Model("assets/models/hueteotl");
+    // crate_texture = new GameEngine::Texture("assets/models/hueteotl/hueteotl.pcx");
 
     return true;
 }

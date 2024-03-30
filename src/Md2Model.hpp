@@ -1,26 +1,26 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <tuple>
 #include <map>
 #include <glm/glm.hpp>
+#include "./Texture.hpp"
 
 namespace GameEngine {
 
-namespace Md2 {
-
-class Vertex {
+class Md2Vertex {
 private:
     glm::vec3 m_position;
     glm::vec3 m_normal;
 
 public:
-    Vertex() {};
-    Vertex(glm::vec3 position, glm::vec3 normal)
+    Md2Vertex() {};
+    Md2Vertex(glm::vec3 position, glm::vec3 normal)
         : m_position(position)
         , m_normal(normal)
     {
     }
-    ~Vertex() = default;
+    ~Md2Vertex() = default;
     glm::vec3 const& position() const
     {
         return m_position;
@@ -32,15 +32,15 @@ public:
 };
 
 template<typename T>
-class Triangle {
+class Md2Triangle {
 private:
     std::array<T, 3> m_points;
 
 public:
-    Triangle() {};
-    Triangle(std::array<T, 3> points)
+    Md2Triangle() {};
+    Md2Triangle(std::array<T, 3> points)
         : m_points(points) {};
-    ~Triangle() = default;
+    ~Md2Triangle() = default;
 
     T const& point(int index) const
     {
@@ -56,33 +56,34 @@ public:
     }
 };
 
-class Frame {
+class Md2Frame {
 private:
-    std::vector<Triangle<Vertex>> m_faces;
+    std::vector<Md2Triangle<Md2Vertex>> m_faces;
 
 public:
-    Frame(std::vector<Triangle<Vertex>> faces)
+    Md2Frame(std::vector<Md2Triangle<Md2Vertex>> faces)
         : m_faces(faces) {};
-    ~Frame() = default;
+    ~Md2Frame() = default;
 
-    std::vector<Triangle<Vertex>> const& faces() const
+    std::vector<Md2Triangle<Md2Vertex>> const& faces() const
     {
         return m_faces;
     }
 };
 
-class Model {
+class Md2Model {
 private:
-    std::map<std::string, std::vector<Frame>> m_frames;
-    std::vector<Triangle<glm::vec2>> m_texture_coordinates;
+    std::map<std::string, std::vector<Md2Frame>> m_frames;
+    std::vector<Md2Triangle<glm::vec2>> m_texture_coordinates;
+    std::unique_ptr<Texture> m_texture;
+    std::string m_name;
 
 public:
-    Model(std::string const& path);
-    ~Model() = default;
+    Md2Model(std::string const& path);
+    ~Md2Model() = default;
 
     void dump_info() const;
     void render() const;
 };
 
-}
 }
