@@ -47,6 +47,174 @@ struct FileSkin {
     char name[64];
 };
 
+// Original Quake 2 precomputed vertex normals as per
+// https://github.com/id-Software/Quake-2/blob/372afde46e7defc9dd2d719a1732b8ace1fa096e/ref_gl/anorms.h
+#define Q2_MD2_NUM_VERTEX_NORMALS 162
+float Q2VertexNormals[Q2_MD2_NUM_VERTEX_NORMALS][3] = {
+    { -0.525731f, 0.000000f, 0.850651f },
+    { -0.442863f, 0.238856f, 0.864188f },
+    { -0.295242f, 0.000000f, 0.955423f },
+    { -0.309017f, 0.500000f, 0.809017f },
+    { -0.162460f, 0.262866f, 0.951056f },
+    { 0.000000f, 0.000000f, 1.000000f },
+    { 0.000000f, 0.850651f, 0.525731f },
+    { -0.147621f, 0.716567f, 0.681718f },
+    { 0.147621f, 0.716567f, 0.681718f },
+    { 0.000000f, 0.525731f, 0.850651f },
+    { 0.309017f, 0.500000f, 0.809017f },
+    { 0.525731f, 0.000000f, 0.850651f },
+    { 0.295242f, 0.000000f, 0.955423f },
+    { 0.442863f, 0.238856f, 0.864188f },
+    { 0.162460f, 0.262866f, 0.951056f },
+    { -0.681718f, 0.147621f, 0.716567f },
+    { -0.809017f, 0.309017f, 0.500000f },
+    { -0.587785f, 0.425325f, 0.688191f },
+    { -0.850651f, 0.525731f, 0.000000f },
+    { -0.864188f, 0.442863f, 0.238856f },
+    { -0.716567f, 0.681718f, 0.147621f },
+    { -0.688191f, 0.587785f, 0.425325f },
+    { -0.500000f, 0.809017f, 0.309017f },
+    { -0.238856f, 0.864188f, 0.442863f },
+    { -0.425325f, 0.688191f, 0.587785f },
+    { -0.716567f, 0.681718f, -0.147621f },
+    { -0.500000f, 0.809017f, -0.309017f },
+    { -0.525731f, 0.850651f, 0.000000f },
+    { 0.000000f, 0.850651f, -0.525731f },
+    { -0.238856f, 0.864188f, -0.442863f },
+    { 0.000000f, 0.955423f, -0.295242f },
+    { -0.262866f, 0.951056f, -0.162460f },
+    { 0.000000f, 1.000000f, 0.000000f },
+    { 0.000000f, 0.955423f, 0.295242f },
+    { -0.262866f, 0.951056f, 0.162460f },
+    { 0.238856f, 0.864188f, 0.442863f },
+    { 0.262866f, 0.951056f, 0.162460f },
+    { 0.500000f, 0.809017f, 0.309017f },
+    { 0.238856f, 0.864188f, -0.442863f },
+    { 0.262866f, 0.951056f, -0.162460f },
+    { 0.500000f, 0.809017f, -0.309017f },
+    { 0.850651f, 0.525731f, 0.000000f },
+    { 0.716567f, 0.681718f, 0.147621f },
+    { 0.716567f, 0.681718f, -0.147621f },
+    { 0.525731f, 0.850651f, 0.000000f },
+    { 0.425325f, 0.688191f, 0.587785f },
+    { 0.864188f, 0.442863f, 0.238856f },
+    { 0.688191f, 0.587785f, 0.425325f },
+    { 0.809017f, 0.309017f, 0.500000f },
+    { 0.681718f, 0.147621f, 0.716567f },
+    { 0.587785f, 0.425325f, 0.688191f },
+    { 0.955423f, 0.295242f, 0.000000f },
+    { 1.000000f, 0.000000f, 0.000000f },
+    { 0.951056f, 0.162460f, 0.262866f },
+    { 0.850651f, -0.525731f, 0.000000f },
+    { 0.955423f, -0.295242f, 0.000000f },
+    { 0.864188f, -0.442863f, 0.238856f },
+    { 0.951056f, -0.162460f, 0.262866f },
+    { 0.809017f, -0.309017f, 0.500000f },
+    { 0.681718f, -0.147621f, 0.716567f },
+    { 0.850651f, 0.000000f, 0.525731f },
+    { 0.864188f, 0.442863f, -0.238856f },
+    { 0.809017f, 0.309017f, -0.500000f },
+    { 0.951056f, 0.162460f, -0.262866f },
+    { 0.525731f, 0.000000f, -0.850651f },
+    { 0.681718f, 0.147621f, -0.716567f },
+    { 0.681718f, -0.147621f, -0.716567f },
+    { 0.850651f, 0.000000f, -0.525731f },
+    { 0.809017f, -0.309017f, -0.500000f },
+    { 0.864188f, -0.442863f, -0.238856f },
+    { 0.951056f, -0.162460f, -0.262866f },
+    { 0.147621f, 0.716567f, -0.681718f },
+    { 0.309017f, 0.500000f, -0.809017f },
+    { 0.425325f, 0.688191f, -0.587785f },
+    { 0.442863f, 0.238856f, -0.864188f },
+    { 0.587785f, 0.425325f, -0.688191f },
+    { 0.688191f, 0.587785f, -0.425325f },
+    { -0.147621f, 0.716567f, -0.681718f },
+    { -0.309017f, 0.500000f, -0.809017f },
+    { 0.000000f, 0.525731f, -0.850651f },
+    { -0.525731f, 0.000000f, -0.850651f },
+    { -0.442863f, 0.238856f, -0.864188f },
+    { -0.295242f, 0.000000f, -0.955423f },
+    { -0.162460f, 0.262866f, -0.951056f },
+    { 0.000000f, 0.000000f, -1.000000f },
+    { 0.295242f, 0.000000f, -0.955423f },
+    { 0.162460f, 0.262866f, -0.951056f },
+    { -0.442863f, -0.238856f, -0.864188f },
+    { -0.309017f, -0.500000f, -0.809017f },
+    { -0.162460f, -0.262866f, -0.951056f },
+    { 0.000000f, -0.850651f, -0.525731f },
+    { -0.147621f, -0.716567f, -0.681718f },
+    { 0.147621f, -0.716567f, -0.681718f },
+    { 0.000000f, -0.525731f, -0.850651f },
+    { 0.309017f, -0.500000f, -0.809017f },
+    { 0.442863f, -0.238856f, -0.864188f },
+    { 0.162460f, -0.262866f, -0.951056f },
+    { 0.238856f, -0.864188f, -0.442863f },
+    { 0.500000f, -0.809017f, -0.309017f },
+    { 0.425325f, -0.688191f, -0.587785f },
+    { 0.716567f, -0.681718f, -0.147621f },
+    { 0.688191f, -0.587785f, -0.425325f },
+    { 0.587785f, -0.425325f, -0.688191f },
+    { 0.000000f, -0.955423f, -0.295242f },
+    { 0.000000f, -1.000000f, 0.000000f },
+    { 0.262866f, -0.951056f, -0.162460f },
+    { 0.000000f, -0.850651f, 0.525731f },
+    { 0.000000f, -0.955423f, 0.295242f },
+    { 0.238856f, -0.864188f, 0.442863f },
+    { 0.262866f, -0.951056f, 0.162460f },
+    { 0.500000f, -0.809017f, 0.309017f },
+    { 0.716567f, -0.681718f, 0.147621f },
+    { 0.525731f, -0.850651f, 0.000000f },
+    { -0.238856f, -0.864188f, -0.442863f },
+    { -0.500000f, -0.809017f, -0.309017f },
+    { -0.262866f, -0.951056f, -0.162460f },
+    { -0.850651f, -0.525731f, 0.000000f },
+    { -0.716567f, -0.681718f, -0.147621f },
+    { -0.716567f, -0.681718f, 0.147621f },
+    { -0.525731f, -0.850651f, 0.000000f },
+    { -0.500000f, -0.809017f, 0.309017f },
+    { -0.238856f, -0.864188f, 0.442863f },
+    { -0.262866f, -0.951056f, 0.162460f },
+    { -0.864188f, -0.442863f, 0.238856f },
+    { -0.809017f, -0.309017f, 0.500000f },
+    { -0.688191f, -0.587785f, 0.425325f },
+    { -0.681718f, -0.147621f, 0.716567f },
+    { -0.442863f, -0.238856f, 0.864188f },
+    { -0.587785f, -0.425325f, 0.688191f },
+    { -0.309017f, -0.500000f, 0.809017f },
+    { -0.147621f, -0.716567f, 0.681718f },
+    { -0.425325f, -0.688191f, 0.587785f },
+    { -0.162460f, -0.262866f, 0.951056f },
+    { 0.442863f, -0.238856f, 0.864188f },
+    { 0.162460f, -0.262866f, 0.951056f },
+    { 0.309017f, -0.500000f, 0.809017f },
+    { 0.147621f, -0.716567f, 0.681718f },
+    { 0.000000f, -0.525731f, 0.850651f },
+    { 0.425325f, -0.688191f, 0.587785f },
+    { 0.587785f, -0.425325f, 0.688191f },
+    { 0.688191f, -0.587785f, 0.425325f },
+    { -0.955423f, 0.295242f, 0.000000f },
+    { -0.951056f, 0.162460f, 0.262866f },
+    { -1.000000f, 0.000000f, 0.000000f },
+    { -0.850651f, 0.000000f, 0.525731f },
+    { -0.955423f, -0.295242f, 0.000000f },
+    { -0.951056f, -0.162460f, 0.262866f },
+    { -0.864188f, 0.442863f, -0.238856f },
+    { -0.951056f, 0.162460f, -0.262866f },
+    { -0.809017f, 0.309017f, -0.500000f },
+    { -0.864188f, -0.442863f, -0.238856f },
+    { -0.951056f, -0.162460f, -0.262866f },
+    { -0.809017f, -0.309017f, -0.500000f },
+    { -0.681718f, 0.147621f, -0.716567f },
+    { -0.681718f, -0.147621f, -0.716567f },
+    { -0.850651f, 0.000000f, -0.525731f },
+    { -0.688191f, 0.587785f, -0.425325f },
+    { -0.587785f, 0.425325f, -0.688191f },
+    { -0.425325f, 0.688191f, -0.587785f },
+    { -0.425325f, -0.688191f, -0.587785f },
+    { -0.587785f, -0.425325f, -0.688191f },
+    { -0.688191f, -0.587785f, -0.425325f }
+};
+
 namespace GameEngine {
 
 Md2Model::Md2Model(std::string const& path_str)
@@ -89,7 +257,8 @@ Md2Model::Md2Model(std::string const& path_str)
 
     // FIXME: just loading the default skin but obviously would be nice to allow loading any available
     // skins as requested by the user
-    m_texture = std::make_unique<Texture>(texture_path);
+    // FIXME: does not work yet
+    // m_texture = std::make_unique<Texture>(texture_path);
 
     glm::vec2 texture_dimensions(header.texture_width, header.texture_height);
     m_texture_coordinates.resize(header.triangle_count);
@@ -122,7 +291,9 @@ Md2Model::Md2Model(std::string const& path_str)
                 auto const compressed_position = frame_vertices[frame_vertex_index].compressed_position;
                 auto const vertex_position = glm::vec3(compressed_position[0], compressed_position[1], compressed_position[2]) * frame_scale + frame_translate;
                 // FIXME: look up normal
-                face_vertices.set_point(triangle_vertex, Md2Vertex(vertex_position, glm::vec3()));
+                // FIXME: bounds check this lookup with Q2_MD2_NUM_VERTEX_NORMALS
+                auto const vertex_normals = Q2VertexNormals[frame_vertices[frame_vertex_index].normal_index];
+                face_vertices.set_point(triangle_vertex, Md2Vertex(vertex_position, glm::vec3(vertex_normals[0], vertex_normals[1], vertex_normals[2])));
             }
 
             frame_faces.push_back(face_vertices);
@@ -172,23 +343,27 @@ void Md2Model::render() const
 
         glBegin(GL_TRIANGLES);
         for (int vertex_index = 0; vertex_index < 3; vertex_index++) {
-            auto current_vertex = current_face.point(vertex_index);
-            auto next_vertex = next_face.point(vertex_index);
-            auto vertex_texture_coordinates = face_texture_coordinates.point(vertex_index);
+            auto const& current_vertex = current_face.point(vertex_index);
+            auto const& next_vertex = next_face.point(vertex_index);
+            auto const& vertex_texture_coordinates = face_texture_coordinates.point(vertex_index);
+            // animation_progress is a fractional frame counter, so we interpolate between this frame and the next frame using
+            // the fractional component of it
+            auto interpolation_amount = std::fmod(animation_progress, 1);
 
-            // FIXME: the texture coordinates don't change between frames, I've just superimposed them
-            // on to the frames for "easy" access. Really indicating that this is a bit of an awkward structure and we should go
-            // back to a looking them up from a central list by triangle / vertex index instead of putting them on each
-            // frame of animation.
             glTexCoord2f(vertex_texture_coordinates.s, vertex_texture_coordinates.t);
+
             auto interpolated_position = glm::mix(
                 current_vertex.position(),
                 next_vertex.position(),
-                std::fmod(animation_progress, 1));
+                interpolation_amount);
+            auto interpolated_normal = glm::mix(
+                current_vertex.normal(),
+                next_vertex.normal(),
+                interpolation_amount);
 
             glVertex3f(interpolated_position.x, interpolated_position.z, interpolated_position.y);
             // FIXME: no normals yet, also need to interpolate normals
-            // glNormal3f(vertex.normal().x, vertex.normal().y, vertex.normal().z);
+            glNormal3f(interpolated_normal.x, interpolated_normal.y, interpolated_normal.z);
         }
         glEnd();
     }
