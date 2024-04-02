@@ -6,38 +6,32 @@ project(GameEngine VERSION 0.1.0 LANGUAGES C CXX)
 
 find_package(SDL2_image REQUIRED CONFIG)
 find_package(SDL2 REQUIRED CONFIG)
-find_package(GLEW REQUIRED)
+find_package(glew REQUIRED CONFIG)
 find_package(glm REQUIRED CONFIG)
 find_package(opengl_system REQUIRED CONFIG)
 
+include_directories(
+    ${SDL2_image_INCLUDE_DIRS}
+    ${SDL2_INCLUDE_DIRS}
+    ${GLEW_INCLUDE_DIRS}
+    ${glm_INCLUDE_DIRS}
+)
+
+add_subdirectory( src/core )
+
 set(SOURCES
     src/main.cpp
-    src/Md2Model.cpp
-    src/Texture.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# FIXME: glm sample uses the PRIVATE keyword?
-# https://github.com/conan-io/conan-center-index/blob/master/recipes/glm/all/test_package/CMakeLists.txt#L7
-target_link_libraries(${PROJECT_NAME} SDL2::SDL2main GLEW::GLEW glm::glm)
-
-# Link SDL
-# https://github.com/conan-io/conan-center-index/blob/master/recipes/sdl/all/test_package/CMakeLists.txt#L8
-if(TARGET SDL2::SDL2-static)
-    target_link_libraries(${PROJECT_NAME} SDL2::SDL2-static)
-else()
-    target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
-endif()
-
-# Link SDL_Image
-# https://github.com/conan-io/conan-center-index/blob/master/recipes/sdl_image/all/test_package/CMakeLists.txt#L7C1-L11C8
-# FIXME: as with glm above the sample uses the PRIVATE keyword
-if(TARGET SDL2_image::SDL2_image-static)
-    target_link_libraries(${PROJECT_NAME} SDL2_image::SDL2_image-static)
-else()
-    target_link_libraries(${PROJECT_NAME} SDL2_image::SDL2_image)
-endif()
+target_link_libraries(${PROJECT_NAME}
+    core
+    ${SDL2_LBRARIES}
+    ${SDL2_image_LIBRARIES}
+    ${glew_LIBRARIES}
+    ${glm_LIBRARIES}
+)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

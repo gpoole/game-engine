@@ -7,7 +7,7 @@
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
-#include "Md2Model.hpp"
+#include "core/Md2Model.hpp"
 
 typedef int32_t i32;
 typedef uint32_t u32;
