@@ -1,7 +1,7 @@
 #include <string>
 #include <SDL2/SDL_opengl.h>
 #include <SDL2/SDL_image.h>
-#include "./Texture.hpp"
+#include "core/Texture.hpp"
 
 namespace GameEngine {
 

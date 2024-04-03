@@ -4,7 +4,7 @@
 #include <tuple>
 #include <map>
 #include <glm/glm.hpp>
-#include "./Texture.hpp"
+#include "core/Texture.hpp"
 
 namespace GameEngine {
 

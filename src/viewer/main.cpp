@@ -176,7 +176,7 @@ void update()
 
 bool load_assets()
 {
-    test_model = new GameEngine::Md2Model("assets/models/hueteotl");
+    test_model = new GameEngine::Md2Model("../../assets/models/hueteotl");
     // crate_texture = new GameEngine::Texture("assets/models/hueteotl/hueteotl.pcx");
 
     return true;

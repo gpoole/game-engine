@@ -19,30 +19,8 @@ include_directories(
 
 add_subdirectory( src/core )
 
-set(SOURCES
-    src/main.cpp
-)
-
-add_executable(${PROJECT_NAME} ${SOURCES})
-
-target_link_libraries(${PROJECT_NAME}
-    core
-    ${SDL2_LBRARIES}
-    ${SDL2_image_LIBRARIES}
-    ${glew_LIBRARIES}
-    ${glm_LIBRARIES}
-)
+add_subdirectory( src/viewer )
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
-
-# Copy assets to build directory
-# https://github.com/Gaetz/SDL-OpenGL/blob/master/CMakeLists.txt#L36
-add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_LIST_DIR}/assets
-    $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets
-    COMMENT "---- Copy Assets"
-)
