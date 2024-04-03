@@ -4,6 +4,7 @@ glew/2.2.0
 sdl_image/2.6.3
 glm/cci.20230113
 opengl/system
+imgui/cci.20230105+1.89.2.docking
 
 [generators]
 CMakeDeps
