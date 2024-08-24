@@ -51,7 +51,7 @@ GameEngine::Texture const* crate_texture;
 
 void render_cube()
 {
-    glColor3f(255, 255, 0); // Yellow
+    // glColor3f(255, 255, 255); // Yellow
 
     glPushMatrix();
 
@@ -177,7 +177,8 @@ void update()
 bool load_assets()
 {
     test_model = new GameEngine::Md2Model("../../assets/models/hueteotl");
-    // crate_texture = new GameEngine::Texture("assets/models/hueteotl/hueteotl.pcx");
+    // crate_texture = new GameEngine::Texture("../../assets/textures/crate.bmp");
+    // crate_texture = new GameEngine::Texture("../../assets/models/hueteotl/hueteotl.pcx");
 
     return true;
 }

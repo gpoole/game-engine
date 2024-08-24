@@ -238,7 +238,8 @@ Md2Model::Md2Model(std::string const& path_str)
 
     // TODO: add any kind of integrity checking at all
 
-    glm::vec2 texture_coordinates[header.texture_coordinate_count];
+    // uses short type for the s and t fields in the header
+    glm::i16vec2 texture_coordinates[header.texture_coordinate_count];
     file.seekg(header.texture_coordinates_offset);
     file.read((char*)&texture_coordinates, sizeof(texture_coordinates));
 
@@ -255,18 +256,16 @@ Md2Model::Md2Model(std::string const& path_str)
     //     throw std::runtime_error("Failed to load: " + path);
     // }
 
-    // FIXME: just loading the default skin but obviously would be nice to allow loading any available
-    // skins as requested by the user
-    // FIXME: does not work yet
-    // m_texture = std::make_unique<Texture>(texture_path);
-
-    glm::vec2 texture_dimensions(header.texture_width, header.texture_height);
     m_texture_coordinates.resize(header.triangle_count);
     for (int triangle_index = 0; triangle_index < header.triangle_count; triangle_index++) {
         for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
-            // Note dimensions are normalised here to fit with GL's 0-1 mapping
-            auto const vertex_coordinates = texture_coordinates[triangles[triangle_index].texture_coordinates[triangle_vertex]] / texture_dimensions;
-            m_texture_coordinates[triangle_index].set_point(triangle_vertex, vertex_coordinates);
+            auto const vertex_coordinates = texture_coordinates[triangles[triangle_index].texture_coordinates[triangle_vertex]];
+            m_texture_coordinates[triangle_index].set_point(
+                triangle_vertex,
+                glm::vec2(
+                    // Note dimensions are normalised here to fit with GL's 0-1 mapping
+                    (float)vertex_coordinates.s / (float)header.texture_width,
+                    (float)vertex_coordinates.t / (float)header.texture_height));
         }
     }
 
@@ -290,13 +289,12 @@ Md2Model::Md2Model(std::string const& path_str)
                 auto const frame_vertex_index = triangles[triangle_index].vertex[triangle_vertex];
                 auto const compressed_position = frame_vertices[frame_vertex_index].compressed_position;
                 auto const vertex_position = glm::vec3(compressed_position[0], compressed_position[1], compressed_position[2]) * frame_scale + frame_translate;
-                // FIXME: look up normal
                 // FIXME: bounds check this lookup with Q2_MD2_NUM_VERTEX_NORMALS
                 auto const vertex_normals = Q2VertexNormals[frame_vertices[frame_vertex_index].normal_index];
                 face_vertices.set_point(triangle_vertex, Md2Vertex(vertex_position, glm::vec3(vertex_normals[0], vertex_normals[1], vertex_normals[2])));
             }
 
-            frame_faces.push_back(face_vertices);
+            frame_faces[triangle_index] = face_vertices;
         }
 
         // assuming name format is animation000
@@ -306,6 +304,10 @@ Md2Model::Md2Model(std::string const& path_str)
 
         m_frames[animation_name].push_back(Md2Frame(frame_faces));
     }
+
+    // FIXME: just loading the default skin but obviously would be nice to allow loading any available
+    // skins as requested by the user
+    m_texture = std::make_unique<Texture>(texture_path);
 }
 
 void Md2Model::dump_info() const
@@ -330,22 +332,22 @@ void Md2Model::render() const
     animation_progress = std::fmod(animation_progress + (15.0f * seconds_elapsed), animation_frames.size());
     last_tick = SDL_GetTicks();
 
-    // FIXME: doesn't work yet...
-    // m_texture->bind();
+    m_texture->bind();
 
     int current_frame_index = floor(animation_progress);
     auto const& current_frame = animation_frames[current_frame_index];
     auto const& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
+
     for (int triangle_index = 0; triangle_index < current_frame.faces().size(); triangle_index++) {
         auto const& current_face = current_frame.faces()[triangle_index];
         auto const& next_face = next_frame.faces()[triangle_index];
         auto const& face_texture_coordinates = m_texture_coordinates[triangle_index];
 
         glBegin(GL_TRIANGLES);
-        for (int vertex_index = 0; vertex_index < 3; vertex_index++) {
-            auto const& current_vertex = current_face.point(vertex_index);
-            auto const& next_vertex = next_face.point(vertex_index);
-            auto const& vertex_texture_coordinates = face_texture_coordinates.point(vertex_index);
+        for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
+            auto const& current_vertex = current_face.point(triangle_vertex);
+            auto const& next_vertex = next_face.point(triangle_vertex);
+            auto const& vertex_texture_coordinates = face_texture_coordinates.point(triangle_vertex);
             // animation_progress is a fractional frame counter, so we interpolate between this frame and the next frame using
             // the fractional component of it
             auto interpolation_amount = std::fmod(animation_progress, 1);
@@ -362,7 +364,6 @@ void Md2Model::render() const
                 interpolation_amount);
 
             glVertex3f(interpolated_position.x, interpolated_position.z, interpolated_position.y);
-            // FIXME: no normals yet, also need to interpolate normals
             glNormal3f(interpolated_normal.x, interpolated_normal.y, interpolated_normal.z);
         }
         glEnd();
