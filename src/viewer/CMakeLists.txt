@@ -1,6 +1,7 @@
 project(viewer VERSION 0.1.0 LANGUAGES C CXX)
 
 set(viewer_SOURCES
+    imgui_utils.cpp
     main.cpp
 )
 
@@ -12,7 +13,7 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
     # Only needed for testing imgui implementation
-    # ${IMGUI_DIR}/imgui_demo.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl2.cpp
 )

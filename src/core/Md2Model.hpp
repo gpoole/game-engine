@@ -74,6 +74,7 @@ public:
 class Md2Model {
 private:
     std::map<std::string, std::vector<Md2Frame>> m_frames;
+    std::vector<std::string const> m_animations;
     std::vector<Md2Triangle<glm::vec2>> m_texture_coordinates;
     std::unique_ptr<Texture> m_texture;
     std::string m_name;
@@ -82,8 +83,13 @@ public:
     Md2Model(std::string const& path);
     ~Md2Model() = default;
 
-    void dump_info() const;
     void render() const;
+    std::string const& name() const;
+    std::string const& current_animation() const;
+    std::vector<std::string const> const& animations() const;
+    // int triangle_count() const;
+    // int frame_count() const;
+    int current_frame_index() const;
 };
 
 }

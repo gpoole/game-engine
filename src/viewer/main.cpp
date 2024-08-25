@@ -1,4 +1,5 @@
 #include <iostream>
+#include <format>
 #include <stdio.h>
 #include <stdint.h>
 #include <assert.h>
@@ -8,9 +9,7 @@
 #include <SDL2/SDL_image.h>
 #include <glm/glm.hpp>
 #include "core/Md2Model.hpp"
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl2.h"
+#include "imgui_utils.h"
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -34,7 +33,7 @@ void print_gl_info()
 
 glm::vec3 camera_position = glm::vec3(0, 0, 0);
 glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
-GameEngine::Md2Model const* test_model;
+std::unique_ptr<GameEngine::Md2Model> active_model = nullptr;
 
 void render_camera()
 {
@@ -47,89 +46,6 @@ void render_camera()
     glRotatef(camera_rotation.z, 0, 0, 1);
 
     glTranslatef(camera_position.x, camera_position.y, camera_position.z);
-}
-
-float cube_rotation = 0;
-GameEngine::Texture const* crate_texture;
-
-void render_cube()
-{
-    // glColor3f(255, 255, 255); // Yellow
-
-    glPushMatrix();
-
-    cube_rotation += 0.1;
-
-    glTranslatef(0, 0, -5);
-    glRotatef(cube_rotation, 0, 1, 0);
-
-    crate_texture->bind();
-
-    glBegin(GL_QUADS);
-
-    // Front face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1, -1, 1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1, -1, 1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1, 1, 1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1, 1, 1);
-
-    // Right face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(1, -1, 1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(1, -1, -1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(1, 1, -1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(1, 1, 1);
-
-    // Back face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(1, -1, -1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(-1, -1, -1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(-1, 1, -1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(1, 1, -1);
-
-    // Right face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(-1, -1, -1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(-1, -1, 1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(-1, 1, 1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(-1, 1, -1);
-
-    // Bottom face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(1, -1, -1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(-1, -1, -1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(-1, -1, 1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(1, -1, 1);
-
-    // Top face
-    glTexCoord2f(0.0f, 0.0f);
-    glVertex3f(1, 1, -1);
-    glTexCoord2f(1.0f, 0.0f);
-    glVertex3f(-1, 1, -1);
-    glTexCoord2f(1.0f, 1.0f);
-    glVertex3f(-1, 1, 1);
-    glTexCoord2f(0.0f, 1.0f);
-    glVertex3f(1, 1, 1);
-
-    glEnd();
-
-    glPopMatrix();
 }
 
 void render()
@@ -149,8 +65,28 @@ void render()
     // Not sure what this does
     // glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-    // render_cube();
-    test_model->render();
+    if (active_model) {
+        active_model->render();
+    }
+}
+
+void render_gui()
+{
+    ImGui::SetNextWindowSize(ImVec2(150, 400));
+    ImGui::Begin("Properties", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+    if (active_model) {
+        ImGui::Text("Model: %s", active_model->name().c_str());
+        // ImGui::Text(": %s")
+        ImGui::SeparatorText("Animations");
+        for (auto const& animation_name : active_model->animations()) {
+            ImGui::Text("%s", animation_name.c_str());
+        }
+    } else {
+        ImGui::Text("No model loaded.");
+    }
+
+    ImGui::End();
 }
 
 void update()
@@ -177,50 +113,12 @@ void update()
     }
 }
 
-bool load_assets()
-{
-    test_model = new GameEngine::Md2Model("../../assets/models/hueteotl");
-    // crate_texture = new GameEngine::Texture("../../assets/textures/crate.bmp");
-    // crate_texture = new GameEngine::Texture("../../assets/models/hueteotl/hueteotl.pcx");
+// bool load_assets()
+// {
+//     active_model = new GameEngine::Md2Model("../../assets/models/hueteotl");
 
-    return true;
-}
-
-void init_imgui(SDL_Window* window, SDL_GLContext* gl_context)
-{
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
-    ImGui_ImplOpenGL2_Init();
-}
-
-void imgui_start_frame()
-{
-    ImGui_ImplOpenGL2_NewFrame();
-    ImGui_ImplSDL2_NewFrame();
-    ImGui::NewFrame();
-    // For testing
-    // ImGui::ShowDemoWindow();
-}
-
-void imgui_end_frame()
-{
-    ImGui::Render();
-    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-}
-
-void imgui_destroy()
-{
-    ImGui_ImplOpenGL2_Shutdown();
-    ImGui_ImplSDL2_Shutdown();
-    ImGui::DestroyContext();
-}
+//     return true;
+// }
 
 int main(int ArgCount, char** Args)
 {
@@ -231,17 +129,14 @@ int main(int ArgCount, char** Args)
 
     SDL_Init(SDL_INIT_VIDEO);
 
+    active_model = std::make_unique<GameEngine::Md2Model>("../../assets/models/hueteotl");
+
     init_imgui(window, &context);
 
     // VSync
     SDL_GL_SetSwapInterval(1);
 
     print_gl_info();
-
-    if (!load_assets()) {
-        std::cout << "Error loading assets" << std::endl;
-        return 1;
-    }
 
     bool running = 1;
     bool full_screen = 0;
@@ -276,6 +171,8 @@ int main(int ArgCount, char** Args)
         update();
 
         render();
+
+        render_gui();
 
         imgui_end_frame();
 

@@ -270,7 +270,6 @@ Md2Model::Md2Model(std::string const& path_str)
     }
 
     file.seekg(header.frames_offset);
-    std::string* current_frame_name = NULL;
     for (int frame_index = 0; frame_index < header.frame_count; frame_index++) {
         glm::vec3 frame_scale;
         glm::vec3 frame_translate;
@@ -305,19 +304,30 @@ Md2Model::Md2Model(std::string const& path_str)
         m_frames[animation_name].push_back(Md2Frame(frame_faces));
     }
 
+    // Make a list of all the animation names
+    for (auto const& [key, _] : m_frames) {
+        m_animations.push_back(key);
+    }
+
     // FIXME: just loading the default skin but obviously would be nice to allow loading any available
     // skins as requested by the user
     m_texture = std::make_unique<Texture>(texture_path);
 }
 
-void Md2Model::dump_info() const
+std::string const& Md2Model::name() const
 {
-    std::cout << "Hello";
+    return m_name;
+}
+
+std::vector<std::string const> const& Md2Model::animations() const
+{
+    return m_animations;
 }
 
 // FIXME: move this info to the model and also think about consoldiating time tracking,
 // maybe we want to pass a deltaTime to render?
-uint32_t last_tick = -1;
+uint32_t last_tick
+    = -1;
 float animation_progress = 0;
 std::string animation_name = "stand";
 
