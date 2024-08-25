@@ -11,10 +11,10 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui_draw.cpp
     ${IMGUI_DIR}/imgui_tables.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
-    # Doesn't appear to be necessary...
+    # Only needed for testing imgui implementation
     # ${IMGUI_DIR}/imgui_demo.cpp
     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+    ${IMGUI_DIR}/backends/imgui_impl_opengl2.cpp
 )
 
 add_executable(viewer ${viewer_SOURCES} ${IMGUI_SOURCES})

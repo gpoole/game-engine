@@ -10,7 +10,7 @@
 #include "core/Md2Model.hpp"
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+#include "imgui_impl_opengl2.h"
 
 typedef int32_t i32;
 typedef uint32_t u32;
@@ -186,14 +186,52 @@ bool load_assets()
     return true;
 }
 
+void init_imgui(SDL_Window* window, SDL_GLContext* gl_context)
+{
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplSDL2_InitForOpenGL(window, gl_context);
+    ImGui_ImplOpenGL2_Init();
+}
+
+void imgui_start_frame()
+{
+    ImGui_ImplOpenGL2_NewFrame();
+    ImGui_ImplSDL2_NewFrame();
+    ImGui::NewFrame();
+    // For testing
+    // ImGui::ShowDemoWindow();
+}
+
+void imgui_end_frame()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+}
+
+void imgui_destroy()
+{
+    ImGui_ImplOpenGL2_Shutdown();
+    ImGui_ImplSDL2_Shutdown();
+    ImGui::DestroyContext();
+}
+
 int main(int ArgCount, char** Args)
 {
-    u32 WindowFlags = SDL_WINDOW_OPENGL;
-    SDL_Window* Window = SDL_CreateWindow("OpenGL Test", 0, 0, WinWidth, WinHeight, WindowFlags);
-    assert(Window);
-    SDL_GLContext Context = SDL_GL_CreateContext(Window);
+    u32 window_flags = SDL_WINDOW_OPENGL;
+    SDL_Window* window = SDL_CreateWindow("OpenGL Test", 0, 0, WinWidth, WinHeight, window_flags);
+    assert(window);
+    SDL_GLContext context = SDL_GL_CreateContext(window);
 
     SDL_Init(SDL_INIT_VIDEO);
+
+    init_imgui(window, &context);
 
     // VSync
     SDL_GL_SetSwapInterval(1);
@@ -205,37 +243,46 @@ int main(int ArgCount, char** Args)
         return 1;
     }
 
-    bool Running = 1;
-    bool FullScreen = 0;
-    while (Running) {
-        SDL_Event Event;
-        while (SDL_PollEvent(&Event)) {
-            if (Event.type == SDL_KEYDOWN) {
-                switch (Event.key.keysym.sym) {
+    bool running = 1;
+    bool full_screen = 0;
+    while (running) {
+        SDL_Event event;
+        while (SDL_PollEvent(&event)) {
+            ImGui_ImplSDL2_ProcessEvent(&event);
+
+            if (event.type == SDL_KEYDOWN) {
+                switch (event.key.keysym.sym) {
                 case SDLK_ESCAPE:
-                    Running = 0;
+                    running = 0;
                     break;
                 case 'f':
-                    FullScreen = !FullScreen;
-                    if (FullScreen) {
-                        SDL_SetWindowFullscreen(Window, WindowFlags | SDL_WINDOW_FULLSCREEN_DESKTOP);
+                    full_screen = !full_screen;
+                    if (full_screen) {
+                        SDL_SetWindowFullscreen(window, window_flags | SDL_WINDOW_FULLSCREEN_DESKTOP);
                     } else {
-                        SDL_SetWindowFullscreen(Window, WindowFlags);
+                        SDL_SetWindowFullscreen(window, window_flags);
                     }
                     break;
                 default:
                     break;
                 }
-            } else if (Event.type == SDL_QUIT) {
-                Running = 0;
+            } else if (event.type == SDL_QUIT) {
+                running = 0;
             }
         }
+
+        imgui_start_frame();
 
         update();
 
         render();
 
-        SDL_GL_SwapWindow(Window);
+        imgui_end_frame();
+
+        SDL_GL_SwapWindow(window);
     }
+
+    imgui_destroy();
+
     return 0;
 }
