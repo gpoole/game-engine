@@ -87,11 +87,19 @@ void render_gui()
 
     if (active_model) {
         ImGui::Text("Model: %s", active_model->name().c_str());
-        // ImGui::Text(": %s")
+
         ImGui::SeparatorText("Animations");
-        for (auto const& animation_name : active_model->animations()) {
-            ImGui::Text("%s", animation_name.c_str());
+        static int item_selected_idx = 0;
+        auto const& animations = active_model->animations();
+        for (int n = 0; n < animations.size(); n++) {
+            bool const is_selected = (item_selected_idx == n);
+            if (ImGui::Selectable(animations[n].c_str(), is_selected))
+                item_selected_idx = n;
+
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
         }
+        active_model->set_animation_name(animations[item_selected_idx]);
     } else {
         ImGui::Text("No model loaded.");
     }
