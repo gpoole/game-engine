@@ -334,6 +334,9 @@ std::string const& Md2Model::animation_name() const
 
 void Md2Model::set_animation_name(std::string const& name)
 {
+    if (m_animation_name != name) {
+        m_animation_frame = 0;
+    }
     m_animation_name = name;
 }
 
