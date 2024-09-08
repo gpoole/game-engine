@@ -305,7 +305,7 @@ Md2Model::Md2Model(std::string const& path_str)
     }
 
     // Make a list of all the animation names
-    for (auto const& [key, _] : m_frames) {
+    for (auto& [key, _] : m_frames) {
         m_animations.push_back(key);
     }
 
@@ -357,19 +357,19 @@ void Md2Model::render() const
 
     auto animation_frames = m_frames.at(m_animation_name);
     int current_frame_index = floor(m_animation_frame);
-    auto const& current_frame = animation_frames[current_frame_index];
-    auto const& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
+    auto& current_frame = animation_frames[current_frame_index];
+    auto& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
 
     for (int triangle_index = 0; triangle_index < current_frame.faces().size(); triangle_index++) {
-        auto const& current_face = current_frame.faces()[triangle_index];
-        auto const& next_face = next_frame.faces()[triangle_index];
-        auto const& face_texture_coordinates = m_texture_coordinates[triangle_index];
+        auto& current_face = current_frame.faces()[triangle_index];
+        auto& next_face = next_frame.faces()[triangle_index];
+        auto& face_texture_coordinates = m_texture_coordinates[triangle_index];
 
         glBegin(GL_TRIANGLES);
         for (int triangle_vertex = 0; triangle_vertex < 3; triangle_vertex++) {
-            auto const& current_vertex = current_face.point(triangle_vertex);
-            auto const& next_vertex = next_face.point(triangle_vertex);
-            auto const& vertex_texture_coordinates = face_texture_coordinates.point(triangle_vertex);
+            auto& current_vertex = current_face.point(triangle_vertex);
+            auto& next_vertex = next_face.point(triangle_vertex);
+            auto& vertex_texture_coordinates = face_texture_coordinates.point(triangle_vertex);
             // animation_progress is a fractional frame counter, so we interpolate between this frame and the next frame using
             // the fractional component of it
             auto interpolation_amount = std::fmod(m_animation_frame, 1);

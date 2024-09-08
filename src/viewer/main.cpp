@@ -76,7 +76,9 @@ void render()
     // glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
     if (active_model) {
+        glPushMatrix();
         active_model->render();
+        glPopMatrix();
     }
 }
 
