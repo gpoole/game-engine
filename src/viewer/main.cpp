@@ -18,6 +18,13 @@ typedef int32_t b32;
 #define WinWidth 1000
 #define WinHeight 1000
 
+// Globals
+
+glm::vec3 camera_position = glm::vec3(0, 0, 0);
+glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
+std::unique_ptr<GameEngine::Md2Model> active_model = nullptr;
+uint engine_last_tick;
+
 void print_gl_info()
 {
     char const* gl_vendor = (char const*)glGetString(GL_VENDOR);
@@ -31,10 +38,13 @@ void print_gl_info()
     return;
 }
 
-glm::vec3 camera_position = glm::vec3(0, 0, 0);
-glm::vec3 camera_rotation = glm::vec3(0, 0, 0);
-std::unique_ptr<GameEngine::Md2Model> active_model = nullptr;
+void init()
+{
+    // FIXME: just for testing
+    active_model = std::make_unique<GameEngine::Md2Model>("../../assets/models/hueteotl");
+}
 
+// FIXME: move this to a specialised Camera class
 void render_camera()
 {
     glMatrixMode(GL_PROJECTION);
@@ -89,7 +99,7 @@ void render_gui()
     ImGui::End();
 }
 
-void update()
+void update(float delta_time)
 {
     Uint8 const* keys = SDL_GetKeyboardState(NULL);
     if (keys[SDL_SCANCODE_RIGHT]) {
@@ -111,14 +121,11 @@ void update()
         camera_position.x -= glm::sin(glm::radians(camera_rotation.y)) * move_distance;
         camera_position.z += glm::cos(glm::radians(camera_rotation.y)) * move_distance;
     }
+
+    if (active_model) {
+        active_model->update(delta_time);
+    }
 }
-
-// bool load_assets()
-// {
-//     active_model = new GameEngine::Md2Model("../../assets/models/hueteotl");
-
-//     return true;
-// }
 
 int main(int ArgCount, char** Args)
 {
@@ -129,14 +136,16 @@ int main(int ArgCount, char** Args)
 
     SDL_Init(SDL_INIT_VIDEO);
 
-    active_model = std::make_unique<GameEngine::Md2Model>("../../assets/models/hueteotl");
-
     init_imgui(window, &context);
 
     // VSync
     SDL_GL_SetSwapInterval(1);
 
-    print_gl_info();
+    // print_gl_info();
+
+    engine_last_tick = SDL_GetTicks();
+
+    init();
 
     bool running = 1;
     bool full_screen = 0;
@@ -166,9 +175,13 @@ int main(int ArgCount, char** Args)
             }
         }
 
+        auto delta_time = (SDL_GetTicks() - engine_last_tick) / 1000.0f;
+
+        engine_last_tick = SDL_GetTicks();
+
         imgui_start_frame();
 
-        update();
+        update(delta_time);
 
         render();
 

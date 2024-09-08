@@ -312,6 +312,9 @@ Md2Model::Md2Model(std::string const& path_str)
     // FIXME: just loading the default skin but obviously would be nice to allow loading any available
     // skins as requested by the user
     m_texture = std::make_unique<Texture>(texture_path);
+
+    // Just default to whatever the first animation is
+    m_animation_name = m_animations[0];
 }
 
 std::string const& Md2Model::name() const
@@ -324,27 +327,33 @@ std::vector<std::string const> const& Md2Model::animations() const
     return m_animations;
 }
 
-// FIXME: move this info to the model and also think about consoldiating time tracking,
-// maybe we want to pass a deltaTime to render?
-uint32_t last_tick
-    = -1;
-float animation_progress = 0;
-std::string animation_name = "stand";
+std::string const& Md2Model::animation_name() const
+{
+    return m_animation_name;
+}
+
+void Md2Model::set_animation_name(std::string const& name)
+{
+    m_animation_name = name;
+}
+
+float Md2Model::animation_frame() const
+{
+    return m_animation_frame;
+}
+
+void Md2Model::update(float delta_time)
+{
+    auto animation_frames = m_frames.at(m_animation_name);
+    m_animation_frame = std::fmod(m_animation_frame + (15.0f * delta_time), animation_frames.size());
+}
 
 void Md2Model::render() const
 {
-    auto animation_frames = m_frames.at(animation_name);
-
-    if (last_tick == -1) {
-        last_tick = SDL_GetTicks();
-    }
-    auto seconds_elapsed = (SDL_GetTicks() - last_tick) / 1000.0f;
-    animation_progress = std::fmod(animation_progress + (15.0f * seconds_elapsed), animation_frames.size());
-    last_tick = SDL_GetTicks();
-
     m_texture->bind();
 
-    int current_frame_index = floor(animation_progress);
+    auto animation_frames = m_frames.at(m_animation_name);
+    int current_frame_index = floor(m_animation_frame);
     auto const& current_frame = animation_frames[current_frame_index];
     auto const& next_frame = animation_frames[(current_frame_index + 1) % animation_frames.size()];
 
@@ -360,7 +369,7 @@ void Md2Model::render() const
             auto const& vertex_texture_coordinates = face_texture_coordinates.point(triangle_vertex);
             // animation_progress is a fractional frame counter, so we interpolate between this frame and the next frame using
             // the fractional component of it
-            auto interpolation_amount = std::fmod(animation_progress, 1);
+            auto interpolation_amount = std::fmod(m_animation_frame, 1);
 
             glTexCoord2f(vertex_texture_coordinates.s, vertex_texture_coordinates.t);
 

@@ -78,18 +78,22 @@ private:
     std::vector<Md2Triangle<glm::vec2>> m_texture_coordinates;
     std::unique_ptr<Texture> m_texture;
     std::string m_name;
+    float m_animation_frame = 0;
+    std::string m_animation_name;
 
 public:
     Md2Model(std::string const& path);
     ~Md2Model() = default;
 
     void render() const;
+    void update(float delta_time);
     std::string const& name() const;
-    std::string const& current_animation() const;
     std::vector<std::string const> const& animations() const;
     // int triangle_count() const;
     // int frame_count() const;
-    int current_frame_index() const;
+    std::string const& animation_name() const;
+    void set_animation_name(std::string const&);
+    float animation_frame() const;
 };
 
 }
